@@ -1,0 +1,2269 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CocktailBook - Carnet de Recettes</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Georgia', serif;
+            background: linear-gradient(135deg, #f5f1e8 0%, #faf6f0 100%);
+            min-height: 100vh;
+            color: #2c1810;
+            overflow-x: hidden;
+        }
+
+        /* Background texture */
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: 
+                radial-gradient(circle at 20% 80%, rgba(120, 100, 80, 0.03) 0%, transparent 50%),
+                radial-gradient(circle at 80% 20%, rgba(120, 100, 80, 0.03) 0%, transparent 50%);
+            pointer-events: none;
+            z-index: -1;
+        }
+
+        .app-container {
+            max-width: 414px;
+            margin: 0 auto;
+            min-height: 100vh;
+            background: rgba(255, 255, 255, 0.9);
+            box-shadow: 0 0 30px rgba(0,0,0,0.1);
+            position: relative;
+            padding-bottom: 80px;
+        }
+
+        /* Header */
+        .header {
+            background: linear-gradient(135deg, #8b4513 0%, #a0522d 100%);
+            color: white;
+            padding: 20px;
+            text-align: center;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+            position: relative;
+        }
+
+        .header::after {
+            content: '';
+            position: absolute;
+            bottom: -5px;
+            left: 0;
+            right: 0;
+            height: 5px;
+            background: repeating-linear-gradient(
+                90deg,
+                #654321 0px,
+                #654321 20px,
+                #8b4513 20px,
+                #8b4513 40px
+            );
+        }
+
+        .header h1 {
+            font-size: 1.8rem;
+            font-weight: normal;
+            letter-spacing: 1px;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .back-btn {
+            position: absolute;
+            left: 20px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: none;
+            border: none;
+            color: white;
+            font-size: 1.5rem;
+            cursor: pointer;
+            padding: 5px;
+            border-radius: 50%;
+            transition: background-color 0.3s;
+        }
+
+        .back-btn:hover {
+            background: rgba(255,255,255,0.2);
+        }
+
+        /* Content area */
+        .content {
+            padding: 20px;
+            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="100" height="30"><defs><pattern id="lines" x="0" y="0" width="100" height="30" patternUnits="userSpaceOnUse"><line x1="0" y1="29" x2="100" y2="29" stroke="%23d4b896" stroke-width="1" opacity="0.3"/></pattern></defs><rect width="100" height="30" fill="url(%23lines)"/></svg>');
+        }
+
+        /* Cards */
+        .cahier-card {
+            background: white;
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 15px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            border: 2px solid #d4b896;
+            position: relative;
+            cursor: pointer;
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+
+        .cahier-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0,0,0,0.15);
+        }
+
+        .cahier-card::before {
+            content: '';
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            right: 10px;
+            bottom: 10px;
+            border: 1px dashed #d4b896;
+            border-radius: 10px;
+            pointer-events: none;
+        }
+
+        .cahier-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+
+        .cahier-card h3 {
+            color: #8b4513;
+            margin-bottom: 10px;
+            font-size: 1.1rem;
+        }
+
+        .cahier-card p {
+            color: #666;
+            font-size: 0.9rem;
+            line-height: 1.4;
+        }
+
+        .add-cahier-btn {
+            background: linear-gradient(135deg, #d4b896 0%, #c9a876 100%);
+            color: #8b4513;
+            border: none;
+            border-radius: 15px;
+            padding: 20px;
+            width: 100%;
+            font-size: 1.1rem;
+            cursor: pointer;
+            margin-top: 15px;
+            transition: transform 0.3s;
+            font-family: inherit;
+            font-weight: bold;
+        }
+
+        .add-cahier-btn:hover {
+            transform: translateY(-2px);
+        }
+
+        /* Recipe cards */
+        .recipe-card {
+            background: white;
+            border-radius: 12px;
+            padding: 15px;
+            margin-bottom: 12px;
+            box-shadow: 0 3px 10px rgba(0,0,0,0.1);
+            border-left: 4px solid #d4b896;
+            cursor: pointer;
+            transition: transform 0.3s;
+        }
+
+        .recipe-card:hover {
+            transform: translateX(5px);
+        }
+
+        .recipe-card h4 {
+            color: #8b4513;
+            margin-bottom: 8px;
+        }
+
+        .recipe-card .creator {
+            color: #666;
+            font-size: 0.9rem;
+            font-style: italic;
+        }
+
+        .tags {
+            display: flex;
+            gap: 8px;
+            margin-top: 10px;
+            flex-wrap: wrap;
+        }
+
+        .tag {
+            background: #f0e6d2;
+            color: #8b4513;
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 0.8rem;
+            border: 1px solid #d4b896;
+        }
+
+        /* Recipe page flip */
+        .recipe-page {
+            perspective: 1000px;
+            height: 600px;
+            position: relative;
+            margin: 20px 0;
+        }
+
+        .recipe-flip {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            transform-style: preserve-3d;
+            transition: transform 0.6s;
+            cursor: pointer;
+        }
+
+        .recipe-flip.flipped {
+            transform: rotateY(180deg);
+        }
+
+        .recipe-face {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            backface-visibility: hidden;
+            border-radius: 15px;
+            padding: 20px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.2);
+        }
+
+        .recipe-verso {
+            background: linear-gradient(135deg, white 0%, #faf6f0 100%);
+            border: 2px solid #d4b896;
+        }
+
+        .recipe-recto {
+            background: linear-gradient(135deg, #faf6f0 0%, white 100%);
+            border: 2px solid #d4b896;
+            transform: rotateY(180deg);
+        }
+
+        .recipe-image {
+            width: 100%;
+            height: 200px;
+            background: linear-gradient(45deg, #d4b896, #c9a876);
+            border-radius: 10px;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 3rem;
+        }
+
+        .recipe-actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 25px;
+            cursor: pointer;
+            font-family: inherit;
+            font-weight: bold;
+            transition: transform 0.3s;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+        }
+
+        .btn-like {
+            background: #ff6b6b;
+            color: white;
+        }
+
+        .btn-add {
+            background: #4ecdc4;
+            color: white;
+            flex: 1;
+        }
+
+        .ingredients {
+            margin-bottom: 20px;
+        }
+
+        .ingredient-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            border-bottom: 1px dotted #d4b896;
+        }
+
+        .steps {
+            margin-bottom: 20px;
+        }
+
+        .step-item {
+            margin-bottom: 12px;
+            padding-left: 20px;
+            position: relative;
+        }
+
+        .step-item::before {
+            content: counter(step-counter);
+            counter-increment: step-counter;
+            position: absolute;
+            left: 0;
+            top: 0;
+            background: #d4b896;
+            color: #8b4513;
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.8rem;
+            font-weight: bold;
+        }
+
+        .steps {
+            counter-reset: step-counter;
+        }
+
+        /* Swipe discovery */
+        .swipe-container {
+            position: relative;
+            height: 600px;
+            padding: 20px;
+        }
+
+        .swipe-card {
+            position: absolute;
+            width: calc(100% - 40px);
+            height: 100%;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            border: 3px solid #d4b896;
+            padding: 20px;
+            cursor: pointer;
+            transition: transform 0.3s;
+        }
+
+        .swipe-card {
+            position: absolute;
+            width: calc(100% - 40px);
+            height: 100%;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            border: 3px solid #d4b896;
+            padding: 20px;
+            cursor: pointer;
+            transition: transform 0.3s;
+            z-index: 3;
+        }
+
+        .swipe-card:nth-child(2) {
+            transform: scale(0.95) translateY(10px);
+            z-index: 2;
+        }
+
+        .swipe-card:nth-child(3) {
+            transform: scale(0.9) translateY(20px);
+            z-index: 1;
+        }
+
+        .swipe-actions {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        .swipe-btn {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+            transition: transform 0.3s;
+        }
+
+        .swipe-btn:hover {
+            transform: scale(1.1);
+        }
+
+        .swipe-reject {
+            background: #ff6b6b;
+            color: white;
+        }
+
+        .swipe-like {
+            background: #4ecdc4;
+            color: white;
+        }
+
+        /* Bottom navigation */
+        .bottom-nav {
+            position: fixed;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 100%;
+            max-width: 414px;
+            background: linear-gradient(135deg, #8b4513 0%, #a0522d 100%);
+            padding: 15px 0;
+            box-shadow: 0 -2px 10px rgba(0,0,0,0.2);
+            z-index: 100;
+        }
+
+        .nav-items {
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+        }
+
+        .nav-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            color: rgba(255,255,255,0.7);
+            cursor: pointer;
+            transition: color 0.3s;
+            text-decoration: none;
+            min-width: 60px;
+        }
+
+        .nav-item.active,
+        .nav-item:hover {
+            color: white;
+        }
+
+        .nav-item span {
+            font-size: 1.2rem;
+            margin-bottom: 5px;
+        }
+
+        .nav-item small {
+            font-size: 0.7rem;
+        }
+
+        /* Forms */
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: #8b4513;
+            font-weight: bold;
+        }
+
+        .form-group input,
+        .form-group textarea,
+        .form-group select {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #d4b896;
+            border-radius: 10px;
+            font-family: inherit;
+            background: white;
+        }
+
+        .form-group textarea {
+            height: 100px;
+            resize: vertical;
+        }
+
+        /* Profile */
+        .profile-header {
+            text-align: center;
+            padding: 30px 20px;
+            background: linear-gradient(135deg, #faf6f0 0%, white 100%);
+            border-bottom: 2px solid #d4b896;
+        }
+
+        .profile-avatar {
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            background: linear-gradient(45deg, #d4b896, #c9a876);
+            margin: 0 auto 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2rem;
+            color: white;
+            border: 3px solid #8b4513;
+        }
+
+        .profile-stats {
+            display: flex;
+            justify-content: space-around;
+            margin: 20px 0;
+        }
+
+        .stat-item {
+            text-align: center;
+        }
+
+        .stat-number {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #8b4513;
+        }
+
+        .stat-label {
+            font-size: 0.9rem;
+            color: #666;
+        }
+
+        /* Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 1000;
+        }
+
+        .modal.show {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-content {
+            background: white;
+            border-radius: 15px;
+            padding: 20px;
+            margin: 20px;
+            max-width: 350px;
+            width: 100%;
+            border: 2px solid #d4b896;
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        .show {
+            display: block !important;
+        }
+
+        /* Pro space */
+        .pro-code-input {
+            text-align: center;
+            padding: 20px;
+        }
+
+        .code-input {
+            font-size: 2rem;
+            text-align: center;
+            letter-spacing: 10px;
+            width: 200px;
+            margin: 20px auto;
+        }
+
+        /* Settings */
+        .settings-item {
+            padding: 15px 0;
+            border-bottom: 1px solid #e0e0e0;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .settings-item:last-child {
+            border-bottom: none;
+        }
+
+        /* Pop-up de confirmation */
+        .confirmation-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(5px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 2000;
+        }
+
+        .confirmation-popup {
+            background: white;
+            border-radius: 20px;
+            padding: 30px 25px;
+            margin: 20px;
+            max-width: 320px;
+            width: 100%;
+            border: 3px solid #d4b896;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            text-align: center;
+            animation: popIn 0.3s ease-out;
+        }
+
+        @keyframes popIn {
+            from {
+                transform: scale(0.8);
+                opacity: 0;
+            }
+            to {
+                transform: scale(1);
+                opacity: 1;
+            }
+        }
+
+        .confirmation-popup h3 {
+            color: #8b4513;
+            margin-bottom: 15px;
+            font-size: 1.4rem;
+        }
+
+        .confirmation-popup p {
+            color: #666;
+            margin-bottom: 20px;
+            line-height: 1.4;
+        }
+
+        .confirmation-popup .recipe-name {
+            color: #8b4513;
+            font-weight: bold;
+            font-size: 1.1rem;
+        }
+
+        .confirmation-popup .cahier-name {
+            color: #8b4513;
+            font-weight: bold;
+        }
+
+        .confirmation-btn {
+            background: linear-gradient(135deg, #8b4513 0%, #a0522d 100%);
+            color: white;
+            border: none;
+            border-radius: 15px;
+            padding: 12px 25px;
+            font-family: inherit;
+            font-weight: bold;
+            cursor: pointer;
+            transition: transform 0.3s;
+        }
+
+        /* Menu 3 points */
+        .recipe-menu {
+            position: relative;
+            display: inline-block;
+            z-index: 50;
+        }
+
+        .menu-dots {
+            background: none;
+            border: none;
+            font-size: 1.2rem;
+            color: #8b4513;
+            cursor: pointer;
+            padding: 5px;
+            border-radius: 50%;
+            transition: background-color 0.3s;
+        }
+
+        .menu-dots:hover {
+            background: rgba(139, 69, 19, 0.1);
+        }
+
+        .menu-dropdown {
+            position: absolute;
+            top: 100%;
+            right: 0;
+            background: white;
+            border: 2px solid #d4b896;
+            border-radius: 10px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+            z-index: 200;
+            min-width: 150px;
+            display: none;
+        }
+
+        .menu-dropdown.show {
+            display: block;
+        }
+
+        .menu-item {
+            padding: 12px 15px;
+            cursor: pointer;
+            border-bottom: 1px solid #f0e6d2;
+            transition: background-color 0.3s;
+            font-size: 0.9rem;
+        }
+
+        .menu-item:last-child {
+            border-bottom: none;
+        }
+
+        .menu-item:hover {
+            background: #f9f6f0;
+        }
+
+        .menu-item:first-child {
+            border-radius: 8px 8px 0 0;
+        }
+
+        .menu-item:last-child {
+            border-radius: 0 0 8px 8px;
+        }
+
+        .menu-item.delete {
+            color: #dc3545;
+        }
+
+        .menu-item.delete:hover {
+            background: #ffe6e6;
+        }
+
+        /* Pop-up de suppression (version rouge) */
+        .delete-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(5px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 2000;
+        }
+
+        .delete-popup {
+            background: white;
+            border-radius: 20px;
+            padding: 30px 25px;
+            margin: 20px;
+            max-width: 320px;
+            width: 100%;
+            border: 3px solid #dc3545;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            text-align: center;
+            animation: popIn 0.3s ease-out;
+        }
+
+        .delete-popup h3 {
+            color: #dc3545;
+            margin-bottom: 15px;
+            font-size: 1.4rem;
+        }
+
+        .delete-popup p {
+            color: #666;
+            margin-bottom: 20px;
+            line-height: 1.4;
+        }
+
+        .delete-popup .recipe-name {
+            color: #dc3545;
+            font-weight: bold;
+            font-size: 1.1rem;
+        }
+
+        .delete-popup .cahier-name {
+            color: #8b4513;
+            font-weight: bold;
+        }
+
+        .delete-actions {
+            display: flex;
+            gap: 10px;
+        }
+
+        .delete-btn {
+            background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+            color: white;
+            border: none;
+            border-radius: 15px;
+            padding: 12px 20px;
+            font-family: inherit;
+            font-weight: bold;
+            cursor: pointer;
+            transition: transform 0.3s;
+            flex: 1;
+        }
+
+        .delete-btn:hover {
+            transform: translateY(-2px);
+        }
+
+        .cancel-btn {
+            background: #6c757d;
+            color: white;
+            border: none;
+            border-radius: 15px;
+            padding: 12px 20px;
+            font-family: inherit;
+            font-weight: bold;
+            cursor: pointer;
+            transition: transform 0.3s;
+            flex: 1;
+        }
+
+        /* Empêcher le z-index conflict avec les cartes */
+        .recipe-card {
+            position: relative;
+            z-index: 1;
+        }
+
+        .recipe-card:hover {
+            z-index: 10;
+        }
+
+        /* Quick access buttons */
+        .quick-access-btn {
+            padding: 12px 8px;
+            border: none;
+            border-radius: 12px;
+            font-family: inherit;
+            font-weight: bold;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: transform 0.3s;
+            border: 2px solid #d4b896;
+        }
+
+        .quick-access-btn:hover {
+            transform: translateY(-2px);
+        }
+
+        /* Icon selector */
+        .icon-selector {
+            display: grid;
+            grid-template-columns: repeat(6, 1fr);
+            gap: 10px;
+            margin: 15px 0;
+        }
+
+        .icon-option {
+            background: #f0e6d2;
+            border: 2px solid #d4b896;
+            border-radius: 10px;
+            padding: 10px;
+            font-size: 1.2rem;
+            cursor: pointer;
+            text-align: center;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 50px;
+        }
+
+        .icon-option:hover,
+        .icon-option.selected {
+            background: #8b4513;
+            color: white;
+            transform: scale(1.1);
+        }
+    </style>
+</head>
+<body>
+    <div class="app-container">
+        <!-- Header -->
+        <div class="header">
+            <button class="back-btn hidden" onclick="goBack()">←</button>
+            <h1 id="page-title">CocktailBook</h1>
+        </div>
+
+        <!-- Mes Cahiers -->
+        <div id="mes-cahiers" class="content">
+            <!-- CTA en haut -->
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 20px;">
+                <button class="quick-access-btn" onclick="openCahier('Pages likées')" style="background: linear-gradient(135deg, #ffe6e6 0%, #ffcccc 100%); color: #8b4513;">
+                    ❤️ Pages likées
+                </button>
+                <button class="quick-access-btn" onclick="showPage('decouverte')" style="background: linear-gradient(135deg, #e6ffe6 0%, #ccffcc 100%); color: #8b4513;">
+                    💡 Découverte
+                </button>
+            </div>
+
+            <!-- Section Espace Personnel -->
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                <h2 style="color: #8b4513; font-size: 1.2rem; margin: 0;">📚 Espace Personnel</h2>
+                <button class="btn" onclick="showNewCahierModal()" style="background: #8b4513; color: white; padding: 8px 15px; font-size: 0.9rem;">
+                    ➕ Nouveau
+                </button>
+            </div>
+
+            <div class="cahier-grid" id="cahier-grid">
+                <div class="cahier-card" onclick="openCahier('Cocktails d\'été')">
+                    <h3>🌴 Cocktails d'été</h3>
+                    <p>12 recettes • Créé le 15/05</p>
+                </div>
+                <div class="cahier-card" onclick="openCahier('Classics')">
+                    <h3>🥃 Classics</h3>
+                    <p>8 recettes • Créé le 02/04</p>
+                </div>
+                <div class="cahier-card" onclick="openCahier('Sans alcool')">
+                    <h3>🧊 Sans alcool</h3>
+                    <p>6 recettes • Créé le 20/03</p>
+                </div>
+            </div>
+            
+            <!-- Section Pro (cachée par défaut) -->
+            <div id="pro-section" class="hidden" style="margin-top: 30px;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                    <h2 style="color: #8b4513; font-size: 1.2rem; margin: 0;">🔒 Espace Professionnel</h2>
+                    <button class="btn" onclick="addProSpace()" style="background: #8b4513; color: white; padding: 8px 15px; font-size: 0.9rem;">
+                        ➕ Ajouter un espace pro
+                    </button>
+                </div>
+                <div class="cahier-card" onclick="openCahier('📚 Café Central (Pro)')" style="background: linear-gradient(135deg, #f8f5f0 0%, #fff 100%); border-color: #8b4513; border-width: 3px;">
+                    <h3>📚 Café Central (Pro)</h3>
+                    <p>3 recettes • Accès Pro validé</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Vue d'un cahier -->
+        <div id="cahier-view" class="content hidden">
+            <div id="recipes-list">
+                <!-- Les recettes seront ajoutées dynamiquement -->
+            </div>
+            <button class="add-cahier-btn" onclick="showCreateRecipe()">
+                ➕ Nouvelle recette
+            </button>
+        </div>
+
+        <!-- Page de recette -->
+        <div id="recipe-page" class="content hidden">
+            <div class="recipe-page">
+                <div class="recipe-flip" onclick="flipRecipe()">
+                    <!-- Verso (face photo) -->
+                    <div class="recipe-face recipe-verso">
+                        <div class="recipe-image" id="recipe-image">🍹</div>
+                        <h2 id="recipe-name">Mojito</h2>
+                        <p id="recipe-creator">@bartender_pro</p>
+                        <div class="tags" id="recipe-tags">
+                            <span class="tag">Fruité</span>
+                            <span class="tag">Rafraîchissant</span>
+                        </div>
+                        <div class="recipe-actions">
+                            <button class="btn btn-like" onclick="likeRecipe(event)">❤️</button>
+                            <button class="btn btn-add" onclick="addToCahier(event)">Ajouter à mon cahier</button>
+                        </div>
+                        <p style="text-align: center; margin-top: 15px; color: #666; font-style: italic;">
+                            Cliquez pour voir la recette →
+                        </p>
+                    </div>
+                    
+                    <!-- Recto (face recette) -->
+                    <div class="recipe-face recipe-recto">
+                        <h2>Ingrédients</h2>
+                        <div class="ingredients" id="recipe-ingredients">
+                            <div class="ingredient-item">
+                                <span>Rhum blanc</span>
+                                <span>4 cl</span>
+                            </div>
+                            <div class="ingredient-item">
+                                <span>Menthe fraîche</span>
+                                <span>8 feuilles</span>
+                            </div>
+                            <div class="ingredient-item">
+                                <span>Citron vert</span>
+                                <span>1/2</span>
+                            </div>
+                            <div class="ingredient-item">
+                                <span>Sucre de canne</span>
+                                <span>2 c. à café</span>
+                            </div>
+                            <div class="ingredient-item">
+                                <span>Eau gazeuse</span>
+                                <span>10 cl</span>
+                            </div>
+                        </div>
+                        
+                        <h2>Préparation</h2>
+                        <div class="steps">
+                            <div class="step-item">Placer les feuilles de menthe et le sucre dans le verre</div>
+                            <div class="step-item">Presser le citron vert au-dessus</div>
+                            <div class="step-item">Piler délicatement pour libérer les arômes</div>
+                            <div class="step-item">Ajouter le rhum et mélanger</div>
+                            <div class="step-item">Remplir de glace pilée</div>
+                            <div class="step-item">Compléter avec l'eau gazeuse</div>
+                        </div>
+                        
+                        <h2>Ustensiles</h2>
+                        <p>Pilon, verre highball, paille</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Créer une recette -->
+        <div id="create-recipe" class="content hidden">
+            <div>
+                <div class="form-group">
+                    <label>Nom du cocktail</label>
+                    <input type="text" id="new-recipe-name" required>
+                </div>
+                
+                <div class="form-group">
+                    <label>Ingrédients (un par ligne, format: nom - quantité)</label>
+                    <textarea id="new-recipe-ingredients" placeholder="Rhum blanc - 4 cl&#10;Menthe fraîche - 8 feuilles" required></textarea>
+                </div>
+                
+                <div class="form-group">
+                    <label>Étapes de préparation (une par ligne)</label>
+                    <textarea id="new-recipe-steps" placeholder="Placer les feuilles de menthe dans le verre&#10;Ajouter le sucre" required></textarea>
+                </div>
+                
+                <div class="form-group">
+                    <label>Ustensiles</label>
+                    <input type="text" id="new-recipe-tools" placeholder="Pilon, verre highball">
+                </div>
+                
+                <div class="form-group">
+                    <label>Tags (séparés par des virgules)</label>
+                    <input type="text" id="new-recipe-tags" placeholder="fruité, rafraîchissant">
+                </div>
+                
+                <div class="form-group">
+                    <label>Visibilité</label>
+                    <select id="new-recipe-visibility">
+                        <option value="private">Privée</option>
+                        <option value="public">Publique</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label>Ajouter au cahier</label>
+                    <select id="new-recipe-cahier">
+                        <option value="Cocktails d'été">🌴 Cocktails d'été</option>
+                        <option value="Classics">🥃 Classics</option>
+                        <option value="Sans alcool">🧊 Sans alcool</option>
+                        <option value="brouillon">📝 Brouillon</option>
+                    </select>
+                </div>
+                
+                <button type="button" class="add-cahier-btn" onclick="saveRecipe()">Créer la recette</button>
+            </div>
+        </div>
+
+        <!-- Découverte (Swipe) -->
+        <div id="decouverte" class="content hidden">
+            <div class="swipe-container">
+                <div class="swipe-card" id="swipe-card-1">
+                    <div class="recipe-flip" onclick="flipSwipeCard(1)">
+                        <!-- Verso (face photo) -->
+                        <div class="recipe-face recipe-verso">
+                            <div class="recipe-image">🍸</div>
+                            <h2>Cosmopolitan</h2>
+                            <p>@mixology_queen</p>
+                            <div class="tags">
+                                <span class="tag">Élégant</span>
+                                <span class="tag">Acidulé</span>
+                            </div>
+                            <p style="text-align: center; margin-top: 15px; color: #666; font-style: italic; font-size: 0.9rem;">
+                                Un cocktail emblématique de New York, parfait pour les soirées sophistiquées. Cliquez pour voir la recette →
+                            </p>
+                        </div>
+                        <!-- Recto (face recette) -->
+                        <div class="recipe-face recipe-recto">
+                            <h3>Ingrédients</h3>
+                            <div style="font-size: 0.9rem; margin-bottom: 15px;">
+                                <div style="display: flex; justify-content: space-between; margin-bottom: 5px;">
+                                    <span>Vodka</span><span>4 cl</span>
+                                </div>
+                                <div style="display: flex; justify-content: space-between; margin-bottom: 5px;">
+                                    <span>Triple sec</span><span>1.5 cl</span>
+                                </div>
+                                <div style="display: flex; justify-content: space-between; margin-bottom: 5px;">
+                                    <span>Jus de cranberry</span><span>3 cl</span>
+                                </div>
+                            </div>
+                            <h3>Préparation</h3>
+                            <div style="font-size: 0.9rem;">
+                                <p>1. Shaker tous les ingrédients</p>
+                                <p>2. Filtrer dans un verre à martini</p>
+                                <p>3. Garnir d'un zeste de citron</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="swipe-card" id="swipe-card-2">
+                    <div class="recipe-image">🥃</div>
+                    <h2>Old Fashioned</h2>
+                    <p>@whiskey_master</p>
+                    <div class="tags">
+                        <span class="tag">Classic</span>
+                        <span class="tag">Fort</span>
+                    </div>
+                    <p style="text-align: center; margin-top: 15px; color: #666; font-style: italic; font-size: 0.9rem;">
+                        Le cocktail préféré de Don Draper dans Mad Men. Un grand classique du whiskey américain.
+                    </p>
+                </div>
+                <div class="swipe-card" id="swipe-card-3">
+                    <div class="recipe-image">🍹</div>
+                    <h2>Piña Colada</h2>
+                    <p>@tropical_bar</p>
+                    <div class="tags">
+                        <span class="tag">Tropical</span>
+                        <span class="tag">Crémeux</span>
+                    </div>
+                    <p style="text-align: center; margin-top: 15px; color: #666; font-style: italic; font-size: 0.9rem;">
+                        L'évasion tropicale dans un verre ! Parfait pour rêver de plages de sable blanc.
+                    </p>
+                </div>
+            </div>
+            <div class="swipe-actions">
+                <button class="swipe-btn swipe-reject" onclick="swipeReject()">✗</button>
+                <button class="swipe-btn swipe-like" onclick="swipeLike()">❤️</button>
+            </div>
+        </div>
+
+        <!-- Profil -->
+        <div id="profil" class="content hidden">
+            <div class="profile-header">
+                <div class="profile-avatar">👤</div>
+                <h2>@marie_cocktails</h2>
+                <p>Passionnée de mixologie 🍹<br>Bartender au Café Central</p>
+            </div>
+            
+            <div class="profile-stats">
+                <div class="stat-item">
+                    <div class="stat-number">23</div>
+                    <div class="stat-label">Recettes créées</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-number">156</div>
+                    <div class="stat-label">Pages likées</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-number">8</div>
+                    <div class="stat-label">Cahiers</div>
+                </div>
+            </div>
+            
+            <div class="settings-item" onclick="showProSpace()">
+                <span>🔒 Espace Pro</span>
+                <span>→</span>
+            </div>
+        </div>
+
+        <!-- Paramètres -->
+        <div id="parametres" class="content hidden">
+            <div class="settings-item">
+                <span>📱 Notifications</span>
+                <span>→</span>
+            </div>
+            <div class="settings-item">
+                <span>🎨 Thème</span>
+                <span>→</span>
+            </div>
+            <div class="settings-item">
+                <span>📤 Exporter mes cahiers</span>
+                <span>→</span>
+            </div>
+            <div class="settings-item" onclick="showProSpace()">
+                <span>🔒 Espace Pro</span>
+                <span>→</span>
+            </div>
+            <div class="settings-item">
+                <span>ℹ️ À propos</span>
+                <span>→</span>
+            </div>
+        </div>
+
+        <!-- Espace Pro -->
+        <div id="pro-space" class="content hidden">
+            <div class="pro-code-input">
+                <h2>Espace Professionnel</h2>
+                <p>Entrez le code d'accès à 4 chiffres :</p>
+                <input type="text" class="code-input" id="pro-code" maxlength="4" placeholder="----">
+                <button class="add-cahier-btn" onclick="validateProCode()">Valider</button>
+            </div>
+            
+            <div id="pro-content" class="hidden">
+                <h2>📚 Cahier Professionnel - Café Central</h2>
+                <div class="recipe-card" onclick="viewRecipe('Signature Martini')">
+                    <h4>Signature Martini</h4>
+                    <p class="creator">Recette maison exclusive</p>
+                    <div class="tags">
+                        <span class="tag">Signature</span>
+                        <span class="tag">Premium</span>
+                    </div>
+                </div>
+                <div class="recipe-card" onclick="viewRecipe('Café Cocktail')">
+                    <h4>Café Cocktail</h4>
+                    <p class="creator">Spécialité du chef barman</p>
+                    <div class="tags">
+                        <span class="tag">Café</span>
+                        <span class="tag">Original</span>
+                    </div>
+                </div>
+                <div class="recipe-card" onclick="viewRecipe('Cocktail Maison')">
+                    <h4>Cocktail de la Maison</h4>
+                    <p class="creator">Création saisonnière</p>
+                    <div class="tags">
+                        <span class="tag">Saisonnier</span>
+                        <span class="tag">Exclusif</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Modals -->
+        <div id="modal-new-cahier" class="modal">
+            <div class="modal-content">
+                <h3>Nouveau cahier</h3>
+                <div class="form-group">
+                    <label>Nom du cahier *</label>
+                    <input type="text" id="cahier-name" placeholder="Ex: Cocktails de fête" required>
+                </div>
+                <div class="form-group">
+                    <label>Description (optionnelle)</label>
+                    <input type="text" id="cahier-description" placeholder="Ex: Pour les occasions spéciales">
+                </div>
+                <div class="form-group">
+                    <label>Choisir une icône</label>
+                    <div class="icon-selector">
+                        <div class="icon-option selected" data-icon="🍹">🍹</div>
+                        <div class="icon-option" data-icon="🥃">🥃</div>
+                        <div class="icon-option" data-icon="🍸">🍸</div>
+                        <div class="icon-option" data-icon="🍷">🍷</div>
+                        <div class="icon-option" data-icon="🧊">🧊</div>
+                        <div class="icon-option" data-icon="🌿">🌿</div>
+                        <div class="icon-option" data-icon="🍋">🍋</div>
+                        <div class="icon-option" data-icon="🥥">🥥</div>
+                        <div class="icon-option" data-icon="☕">☕</div>
+                        <div class="icon-option" data-icon="🌟">🌟</div>
+                        <div class="icon-option" data-icon="🎉">🎉</div>
+                        <div class="icon-option" data-icon="🌺">🌺</div>
+                    </div>
+                </div>
+                <button class="add-cahier-btn" onclick="createNewCahier()">Créer le cahier</button>
+                <button class="btn" onclick="hideModal('modal-new-cahier')" style="background: #ccc; color: #333; margin-top: 10px;">Annuler</button>
+            </div>
+        </div>
+
+        <div id="modal-add-to-cahier" class="modal">
+            <div class="modal-content">
+                <h3>Ajouter à un cahier</h3>
+                <div class="form-group">
+                    <select id="select-cahier">
+                        <option value="Cocktails d'été">🌴 Cocktails d'été</option>
+                        <option value="Classics">🥃 Classics</option>
+                        <option value="Sans alcool">🧊 Sans alcool</option>
+                    </select>
+                </div>
+                <button class="add-cahier-btn" onclick="confirmAddToCahier()">Ajouter</button>
+                <button class="btn" onclick="hideModal('modal-add-to-cahier')" style="background: #ccc; color: #333; margin-top: 10px;">Annuler</button>
+            </div>
+        </div>
+
+        <!-- Bottom Navigation -->
+        <div class="bottom-nav">
+            <div class="nav-items">
+                <div class="nav-item active" onclick="showPage('mes-cahiers')" id="nav-cahiers">
+                    <span>📘</span>
+                    <small>Mes cahiers</small>
+                </div>
+                <div class="nav-item" onclick="showPage('decouverte')" id="nav-decouverte">
+                    <span>💡</span>
+                    <small>Découverte</small>
+                </div>
+                <div class="nav-item" onclick="showPage('profil')" id="nav-profil">
+                    <span>👤</span>
+                    <small>Profil</small>
+                </div>
+                <div class="nav-item" onclick="showPage('parametres')" id="nav-parametres">
+                    <span>⚙️</span>
+                    <small>Paramètres</small>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Data storage
+        const cocktailData = {
+            "Mojito": {
+                image: "🍹",
+                creator: "@bartender_pro",
+                tags: ["Fruité", "Rafraîchissant"],
+                ingredients: [
+                    ["Rhum blanc", "4 cl"],
+                    ["Menthe fraîche", "8 feuilles"],
+                    ["Citron vert", "1/2"],
+                    ["Sucre de canne", "2 c. à café"],
+                    ["Eau gazeuse", "10 cl"]
+                ],
+                steps: [
+                    "Placer les feuilles de menthe et le sucre dans le verre",
+                    "Presser le citron vert au-dessus",
+                    "Piler délicatement pour libérer les arômes",
+                    "Ajouter le rhum et mélanger",
+                    "Remplir de glace pilée",
+                    "Compléter avec l'eau gazeuse"
+                ],
+                tools: "Pilon, verre highball, paille"
+            },
+            "Cosmopolitan": {
+                image: "🍸",
+                creator: "@mixology_queen",
+                tags: ["Élégant", "Acidulé"],
+                ingredients: [
+                    ["Vodka", "4 cl"],
+                    ["Triple sec", "1.5 cl"],
+                    ["Jus de cranberry", "3 cl"],
+                    ["Jus de citron vert", "1 cl"]
+                ],
+                steps: [
+                    "Verser tous les ingrédients dans un shaker",
+                    "Ajouter de la glace",
+                    "Shaker vigoureusement",
+                    "Filtrer dans un verre à martini",
+                    "Garnir d'une rondelle de citron vert"
+                ],
+                tools: "Shaker, passoire, verre à martini"
+            },
+            "Old Fashioned": {
+                image: "🥃",
+                creator: "@whiskey_master",
+                tags: ["Classic", "Fort"],
+                ingredients: [
+                    ["Whiskey bourbon", "6 cl"],
+                    ["Sucre brun", "1 morceau"],
+                    ["Angostura bitters", "2 traits"],
+                    ["Orange", "1 zeste"]
+                ],
+                steps: [
+                    "Placer le sucre dans un verre old fashioned",
+                    "Ajouter les bitters et un peu d'eau",
+                    "Écraser le sucre pour le dissoudre",
+                    "Ajouter le whiskey",
+                    "Remuer avec de la glace",
+                    "Garnir avec le zeste d'orange"
+                ],
+                tools: "Verre old fashioned, cuillère à mélange"
+            },
+            "Piña Colada": {
+                image: "🥥",
+                creator: "@tropical_bar",
+                tags: ["Tropical", "Crémeux"],
+                ingredients: [
+                    ["Rhum blanc", "3 cl"],
+                    ["Rhum ambré", "3 cl"],
+                    ["Lait de coco", "9 cl"],
+                    ["Jus d'ananas", "9 cl"],
+                    ["Glace pilée", "2 tasses"]
+                ],
+                steps: [
+                    "Verser tous les ingrédients dans un blender",
+                    "Mixer jusqu'à obtenir une consistance crémeuse",
+                    "Verser dans un verre hurricane",
+                    "Garnir d'un morceau d'ananas",
+                    "Ajouter une cerise confite"
+                ],
+                tools: "Blender, verre hurricane"
+            },
+            "Margarita": {
+                image: "🍋",
+                creator: "@tequila_expert",
+                tags: ["Mexicain", "Salé"],
+                ingredients: [
+                    ["Tequila", "5 cl"],
+                    ["Triple sec", "2 cl"],
+                    ["Jus de citron vert", "3 cl"],
+                    ["Sel", "Pour le rebord"]
+                ],
+                steps: [
+                    "Givrer le rebord du verre avec du sel",
+                    "Verser la tequila dans un shaker",
+                    "Ajouter le triple sec et le jus de citron",
+                    "Shaker avec de la glace",
+                    "Servir dans le verre givré"
+                ],
+                tools: "Shaker, verre à margarita"
+            },
+            "Sangria": {
+                image: "🍷",
+                creator: "@spanish_corner",
+                tags: ["Fruité", "Partagé"],
+                ingredients: [
+                    ["Vin rouge", "75 cl"],
+                    ["Brandy", "10 cl"],
+                    ["Sucre", "3 c. à soupe"],
+                    ["Orange", "1"],
+                    ["Pomme", "1"],
+                    ["Cannelle", "1 bâton"]
+                ],
+                steps: [
+                    "Couper les fruits en morceaux",
+                    "Mélanger le vin et le brandy",
+                    "Ajouter le sucre et remuer",
+                    "Incorporer les fruits et la cannelle",
+                    "Laisser macérer 2 heures minimum",
+                    "Servir bien frais"
+                ],
+                tools: "Carafe, couteau, cuillère"
+            },
+            "Moscow Mule": {
+                image: "🧊",
+                creator: "@copper_mug",
+                tags: ["Épicé", "Rafraîchissant"],
+                ingredients: [
+                    ["Vodka", "5 cl"],
+                    ["Jus de citron vert", "1.5 cl"],
+                    ["Ginger beer", "15 cl"],
+                    ["Glace", "Cubes"]
+                ],
+                steps: [
+                    "Remplir un mug en cuivre de glace",
+                    "Verser la vodka",
+                    "Ajouter le jus de citron vert",
+                    "Compléter avec la ginger beer",
+                    "Remuer délicatement",
+                    "Garnir d'une rondelle de citron vert"
+                ],
+                tools: "Mug en cuivre, cuillère"
+            },
+            "Virgin Mojito": {
+                image: "🌿",
+                creator: "@zero_alcool",
+                tags: ["Sans alcool", "Menthe"],
+                ingredients: [
+                    ["Menthe fraîche", "10 feuilles"],
+                    ["Citron vert", "1/2"],
+                    ["Sucre", "2 c. à café"],
+                    ["Eau gazeuse", "15 cl"],
+                    ["Glace pilée", "1 tasse"]
+                ],
+                steps: [
+                    "Placer la menthe et le sucre dans le verre",
+                    "Presser le citron vert",
+                    "Piler pour libérer les arômes",
+                    "Ajouter la glace pilée",
+                    "Compléter avec l'eau gazeuse",
+                    "Remuer et garnir de menthe"
+                ],
+                tools: "Pilon, verre highball"
+            },
+            "Signature Martini": {
+                image: "🍸",
+                creator: "Chef Barman - Café Central",
+                tags: ["Signature", "Premium"],
+                ingredients: [
+                    ["Gin premium", "6 cl"],
+                    ["Vermouth sec", "1 cl"],
+                    ["Olive de Kalamata", "1"],
+                    ["Zeste de citron", "1"]
+                ],
+                steps: [
+                    "Refroidir le verre à martini",
+                    "Verser le gin et le vermouth dans un mixing glass",
+                    "Ajouter de la glace et remuer 30 secondes",
+                    "Filtrer dans le verre refroidi",
+                    "Garnir avec l'olive et le zeste"
+                ],
+                tools: "Mixing glass, passoire, verre à martini"
+            },
+            "Café Cocktail": {
+                image: "☕",
+                creator: "Chef Barman - Café Central",
+                tags: ["Café", "Original"],
+                ingredients: [
+                    ["Espresso", "4 cl"],
+                    ["Rhum ambré", "3 cl"],
+                    ["Liqueur de café", "2 cl"],
+                    ["Crème", "2 cl"],
+                    ["Sucre de canne", "1 c. à café"]
+                ],
+                steps: [
+                    "Préparer un espresso serré",
+                    "Ajouter le sucre et remuer",
+                    "Incorporer le rhum et la liqueur",
+                    "Fouetter légèrement la crème",
+                    "Déposer la crème en surface"
+                ],
+                tools: "Machine à café, fouet, cuillère"
+            },
+            "Cocktail Maison": {
+                image: "🌟",
+                creator: "Chef Barman - Café Central",
+                tags: ["Saisonnier", "Exclusif"],
+                ingredients: [
+                    ["Vodka artisanale", "4 cl"],
+                    ["Sirop de lavande", "2 cl"],
+                    ["Jus de pamplemousse", "6 cl"],
+                    ["Eau pétillante", "4 cl"],
+                    ["Brin de lavande", "1"]
+                ],
+                steps: [
+                    "Verser la vodka dans un shaker",
+                    "Ajouter le sirop et le jus de pamplemousse",
+                    "Shaker avec de la glace",
+                    "Filtrer dans un verre à vin",
+                    "Compléter avec l'eau pétillante",
+                    "Garnir du brin de lavande"
+                ],
+                tools: "Shaker, passoire, verre à vin"
+            }
+        };
+
+        const cahiers = {
+            "Cocktails d'été": ["Mojito", "Piña Colada", "Sangria"],
+            "Classics": ["Old Fashioned", "Margarita", "Cosmopolitan"],
+            "Sans alcool": ["Virgin Mojito"],
+            "Pages likées": []
+        };
+
+        let currentCahier = '';
+        let currentRecipe = '';
+        let swipeIndex = 0;
+        const swipeCards = ["Cosmopolitan", "Old Fashioned", "Piña Colada", "Moscow Mule"];
+
+        // Navigation functions
+        function showPage(pageId) {
+            // Hide all pages
+            document.querySelectorAll('.content').forEach(page => {
+                page.classList.add('hidden');
+            });
+            
+            // Remove active from all nav items
+            document.querySelectorAll('.nav-item').forEach(item => {
+                item.classList.remove('active');
+            });
+            
+            // Show selected page
+            document.getElementById(pageId).classList.remove('hidden');
+            document.getElementById(`nav-${pageId === 'mes-cahiers' ? 'cahiers' : pageId}`).classList.add('active');
+            
+            // Update header
+            const titles = {
+                'mes-cahiers': 'Mes Cahiers',
+                'decouverte': 'Découverte',
+                'profil': 'Profil',
+                'parametres': 'Paramètres'
+            };
+            
+            document.getElementById('page-title').textContent = titles[pageId] || 'CocktailBook';
+            
+            // Show/hide back button
+            const backBtn = document.querySelector('.back-btn');
+            if (pageId === 'mes-cahiers') {
+                backBtn.classList.add('hidden');
+            } else {
+                backBtn.classList.remove('hidden');
+            }
+        }
+
+        function goBack() {
+            const currentPage = document.querySelector('.content:not(.hidden)').id;
+            
+            if (currentPage === 'cahier-view' || currentPage === 'recipe-page' || currentPage === 'create-recipe' || currentPage === 'pro-space') {
+                showPage('mes-cahiers');
+            } else {
+                showPage('mes-cahiers');
+            }
+        }
+
+        // Cahier functions
+        function openCahier(cahierName) {
+            currentCahier = cahierName;
+            document.getElementById('page-title').textContent = cahierName;
+            document.querySelector('.back-btn').classList.remove('hidden');
+            
+            const recipesList = document.getElementById('recipes-list');
+            recipesList.innerHTML = '';
+            
+            const recipes = cahiers[cahierName] || [];
+            const isProCahier = cahierName.includes('(Pro)');
+            
+            recipes.forEach((recipeName, index) => {
+                const recipe = cocktailData[recipeName];
+                if (recipe) {
+                    const recipeCard = document.createElement('div');
+                    recipeCard.className = 'recipe-card';
+                    
+                    // Créer un ID unique pour cette recette
+                    const recipeId = `recipe_${index}`;
+                    
+                    recipeCard.innerHTML = `
+                        <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+                            <div onclick="viewRecipe('${recipeName}')" style="flex: 1; cursor: pointer;">
+                                <h4>${recipe.image} ${recipeName}</h4>
+                                <p class="creator">${recipe.creator}</p>
+                                <div class="tags">
+                                    ${recipe.tags.map(tag => `<span class="tag">${tag}</span>`).join('')}
+                                </div>
+                            </div>
+                            ${!isProCahier ? `
+                                <div class="recipe-menu">
+                                    <button class="menu-dots" onclick="toggleRecipeMenu(event, '${recipeId}')">⋮</button>
+                                    <div class="menu-dropdown" id="menu-${recipeId}">
+                                        <div class="menu-item" onclick="editRecipeByIndex(${index})">
+                                            ✏️ Modifier
+                                        </div>
+                                        <div class="menu-item" onclick="copyRecipeByIndex(${index})">
+                                            📄 Créer une copie
+                                        </div>
+                                        <div class="menu-item delete" onclick="deleteRecipeByIndex(${index})">
+                                            🗑️ Supprimer
+                                        </div>
+                                    </div>
+                                </div>
+                            ` : ''}
+                        </div>
+                    `;
+                    recipesList.appendChild(recipeCard);
+                }
+            });
+            
+            // Cacher le bouton "Nouvelle recette" pour les cahiers pro
+            const addRecipeBtn = document.querySelector('#cahier-view .add-cahier-btn');
+            if (isProCahier) {
+                addRecipeBtn.style.display = 'none';
+            } else {
+                addRecipeBtn.style.display = 'block';
+            }
+            
+            document.getElementById('mes-cahiers').classList.add('hidden');
+            document.getElementById('cahier-view').classList.remove('hidden');
+        }
+
+        function toggleRecipeMenu(event, recipeId) {
+            event.stopPropagation();
+            
+            // Fermer tous les autres menus
+            document.querySelectorAll('.menu-dropdown').forEach(menu => {
+                menu.classList.remove('show');
+            });
+            
+            // Ouvrir/fermer le menu cliqué
+            const menu = document.getElementById(`menu-${recipeId}`);
+            if (menu) {
+                menu.classList.toggle('show');
+            }
+        }
+
+        function deleteRecipeByIndex(index) {
+            console.log('deleteRecipeByIndex appelée avec index:', index);
+            console.log('currentCahier:', currentCahier);
+            console.log('cahiers[currentCahier]:', cahiers[currentCahier]);
+            
+            // Fermer tous les menus
+            document.querySelectorAll('.menu-dropdown').forEach(menu => {
+                menu.classList.remove('show');
+            });
+            
+            if (!cahiers[currentCahier]) {
+                alert('Erreur : cahier non trouvé');
+                return;
+            }
+            
+            if (index < 0 || index >= cahiers[currentCahier].length) {
+                alert('Erreur : index invalide');
+                return;
+            }
+            
+            const recipeName = cahiers[currentCahier][index];
+            console.log('Recette à supprimer:', recipeName);
+            
+            // Afficher le pop-up de confirmation de suppression
+            showDeleteConfirmation(recipeName, index);
+        }
+
+        function showDeleteConfirmation(recipeName, index) {
+            const overlay = document.createElement('div');
+            overlay.className = 'delete-overlay';
+            overlay.innerHTML = `
+                <div class="delete-popup">
+                    <h3>🗑️ Supprimer la recette</h3>
+                    <p>
+                        Êtes-vous sûr de vouloir supprimer<br>
+                        <span class="recipe-name">"${recipeName}"</span><br>
+                        du cahier<br>
+                        <span class="cahier-name">${currentCahier}</span> ?
+                    </p>
+                    <div class="delete-actions">
+                        <button class="cancel-btn" onclick="closeDeleteConfirmation()">
+                            Annuler
+                        </button>
+                        <button class="delete-btn" onclick="confirmDeleteRecipe(${index})">
+                            Supprimer
+                        </button>
+                    </div>
+                </div>
+            `;
+            
+            document.body.appendChild(overlay);
+        }
+
+        function confirmDeleteRecipe(index) {
+            const recipeName = cahiers[currentCahier][index];
+            
+            // Supprimer par index
+            cahiers[currentCahier].splice(index, 1);
+            
+            console.log('Après suppression:', cahiers[currentCahier]);
+            
+            // Fermer le pop-up de confirmation
+            closeDeleteConfirmation();
+            
+            // Afficher le pop-up de succès
+            showDeleteSuccess(recipeName);
+            
+            // Mettre à jour le compteur
+            updateCahierCardCount(currentCahier);
+            
+            // Recharger la vue
+            openCahier(currentCahier);
+        }
+
+        function showDeleteSuccess(recipeName) {
+            const overlay = document.createElement('div');
+            overlay.className = 'confirmation-overlay';
+            overlay.innerHTML = `
+                <div class="confirmation-popup" style="border-color: #dc3545;">
+                    <h3 style="color: #dc3545;">🗑️ Recette supprimée !</h3>
+                    <p>
+                        <span class="recipe-name">"${recipeName}"</span><br>
+                        a été supprimée du cahier<br>
+                        <span class="cahier-name">${currentCahier}</span>
+                    </p>
+                    <button class="confirmation-btn" style="background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);" onclick="closeDeleteSuccess()">
+                        Compris
+                    </button>
+                </div>
+            `;
+            
+            document.body.appendChild(overlay);
+            
+            // Auto-fermeture après 3 secondes
+            setTimeout(() => {
+                if (document.body.contains(overlay)) {
+                    closeDeleteSuccess();
+                }
+            }, 3000);
+        }
+
+        function closeDeleteConfirmation() {
+            const overlay = document.querySelector('.delete-overlay');
+            if (overlay) {
+                document.body.removeChild(overlay);
+            }
+        }
+
+        function closeDeleteSuccess() {
+            const overlay = document.querySelector('.confirmation-overlay');
+            if (overlay) {
+                document.body.removeChild(overlay);
+            }
+        }
+
+        function editRecipeByIndex(index) {
+            const recipeName = cahiers[currentCahier][index];
+            const recipe = cocktailData[recipeName];
+            if (!recipe) return;
+            
+            // Remplir le formulaire avec les données existantes
+            document.getElementById('new-recipe-name').value = recipeName;
+            document.getElementById('new-recipe-ingredients').value = recipe.ingredients.map(([name, qty]) => `${name} - ${qty}`).join('\n');
+            document.getElementById('new-recipe-steps').value = recipe.steps.join('\n');
+            document.getElementById('new-recipe-tools').value = recipe.tools;
+            document.getElementById('new-recipe-tags').value = recipe.tags.join(', ');
+            document.getElementById('new-recipe-cahier').value = currentCahier;
+            
+            // Marquer comme modification
+            window.editingRecipe = recipeName;
+            
+            showCreateRecipe();
+            document.getElementById('page-title').textContent = 'Modifier la recette';
+            
+            // Fermer le menu
+            document.querySelectorAll('.menu-dropdown').forEach(menu => {
+                menu.classList.remove('show');
+            });
+        }
+
+        function copyRecipeByIndex(index) {
+            const recipeName = cahiers[currentCahier][index];
+            const recipe = cocktailData[recipeName];
+            if (!recipe) return;
+            
+            // Remplir le formulaire avec les données + "Copie de"
+            document.getElementById('new-recipe-name').value = `Copie de ${recipeName}`;
+            document.getElementById('new-recipe-ingredients').value = recipe.ingredients.map(([name, qty]) => `${name} - ${qty}`).join('\n');
+            document.getElementById('new-recipe-steps').value = recipe.steps.join('\n');
+            document.getElementById('new-recipe-tools').value = recipe.tools;
+            document.getElementById('new-recipe-tags').value = recipe.tags.join(', ');
+            document.getElementById('new-recipe-cahier').value = currentCahier;
+            
+            showCreateRecipe();
+            document.getElementById('page-title').textContent = 'Copier la recette';
+            
+            // Fermer le menu
+            document.querySelectorAll('.menu-dropdown').forEach(menu => {
+                menu.classList.remove('show');
+            });
+        }
+
+        function viewRecipe(recipeName) {
+            currentRecipe = recipeName;
+            const recipe = cocktailData[recipeName];
+            
+            if (!recipe) return;
+            
+            document.getElementById('page-title').textContent = recipeName;
+            
+            // Update verso
+            document.getElementById('recipe-image').textContent = recipe.image;
+            document.getElementById('recipe-name').textContent = recipeName;
+            document.getElementById('recipe-creator').textContent = recipe.creator;
+            document.getElementById('recipe-tags').innerHTML = 
+                recipe.tags.map(tag => `<span class="tag">${tag}</span>`).join('');
+            
+            // Update recto
+            document.getElementById('recipe-ingredients').innerHTML = 
+                recipe.ingredients.map(([name, qty]) => 
+                    `<div class="ingredient-item"><span>${name}</span><span>${qty}</span></div>`
+                ).join('');
+            
+            const stepsContainer = document.querySelector('.steps');
+            stepsContainer.innerHTML = recipe.steps.map(step => 
+                `<div class="step-item">${step}</div>`
+            ).join('');
+            
+            document.querySelector('.recipe-recto h2:last-of-type + p').textContent = recipe.tools;
+            
+            // Reset flip
+            document.querySelector('.recipe-flip').classList.remove('flipped');
+            
+            document.querySelector('.content:not(.hidden)').classList.add('hidden');
+            document.getElementById('recipe-page').classList.remove('hidden');
+        }
+
+        function flipRecipe() {
+            document.querySelector('.recipe-flip').classList.toggle('flipped');
+        }
+
+        function likeRecipe(event) {
+            event.stopPropagation();
+            
+            if (!cahiers["Pages likées"].includes(currentRecipe)) {
+                cahiers["Pages likées"].push(currentRecipe);
+                alert(`${currentRecipe} ajouté aux pages likées !`);
+            } else {
+                alert(`${currentRecipe} est déjà dans vos pages likées !`);
+            }
+        }
+
+        function addToCahier(event) {
+            event.stopPropagation();
+            showModal('modal-add-to-cahier');
+        }
+
+        // Create recipe functions
+        function showCreateRecipe() {
+            document.getElementById('page-title').textContent = 'Nouvelle recette';
+            document.querySelector('.back-btn').classList.remove('hidden');
+            
+            document.querySelector('.content:not(.hidden)').classList.add('hidden');
+            document.getElementById('create-recipe').classList.remove('hidden');
+        }
+
+        function saveRecipe() {
+            const name = document.getElementById('new-recipe-name').value.trim();
+            const ingredientsText = document.getElementById('new-recipe-ingredients').value;
+            const stepsText = document.getElementById('new-recipe-steps').value;
+            const tools = document.getElementById('new-recipe-tools').value;
+            const tagsText = document.getElementById('new-recipe-tags').value;
+            const cahier = document.getElementById('new-recipe-cahier').value;
+            
+            if (!name) {
+                alert('Le nom de la recette est obligatoire !');
+                return;
+            }
+            
+            // Parse ingredients
+            const ingredients = ingredientsText.split('\n').map(line => {
+                const parts = line.split(' - ');
+                return [parts[0].trim(), parts[1] ? parts[1].trim() : ''];
+            }).filter(ingredient => ingredient[0]);
+            
+            // Parse steps
+            const steps = stepsText.split('\n').map(step => step.trim()).filter(step => step);
+            
+            // Parse tags
+            const tags = tagsText.split(',').map(tag => tag.trim()).filter(tag => tag);
+            
+            // Si on modifie une recette existante
+            if (window.editingRecipe) {
+                // Supprimer l'ancienne version des cahiers
+                Object.keys(cahiers).forEach(cahierName => {
+                    const index = cahiers[cahierName].indexOf(window.editingRecipe);
+                    if (index > -1) {
+                        cahiers[cahierName].splice(index, 1);
+                    }
+                });
+                
+                // Supprimer l'ancienne recette des données
+                delete cocktailData[window.editingRecipe];
+                
+                // Reset du flag d'édition
+                window.editingRecipe = null;
+            }
+            
+            // Create recipe object
+            cocktailData[name] = {
+                image: "🍸",
+                creator: "@marie_cocktails",
+                tags: tags.length > 0 ? tags : ['Nouveau'],
+                ingredients: ingredients.length > 0 ? ingredients : [['Ingrédient', 'Quantité']],
+                steps: steps.length > 0 ? steps : ['Étape de préparation'],
+                tools: tools || 'Non spécifié'
+            };
+            
+            // Add to cahier
+            if (!cahiers[cahier]) {
+                cahiers[cahier] = [];
+            }
+            cahiers[cahier].push(name);
+            
+            // Mettre à jour le compteur de recettes dans la carte du cahier
+            updateCahierCardCount(cahier);
+            
+            // Afficher le pop-up de confirmation
+            showConfirmationPopup(name, cahier);
+            
+            // Clear form
+            document.getElementById('new-recipe-name').value = '';
+            document.getElementById('new-recipe-ingredients').value = '';
+            document.getElementById('new-recipe-steps').value = '';
+            document.getElementById('new-recipe-tools').value = '';
+            document.getElementById('new-recipe-tags').value = '';
+        }
+
+        function showConfirmationPopup(recipeName, cahierName) {
+            const overlay = document.createElement('div');
+            overlay.className = 'confirmation-overlay';
+            overlay.innerHTML = `
+                <div class="confirmation-popup">
+                    <h3>✅ Recette créée !</h3>
+                    <p>
+                        <span class="recipe-name">"${recipeName}"</span><br>
+                        a été ajoutée au cahier<br>
+                        <span class="cahier-name">${cahierName}</span>
+                    </p>
+                    <button class="confirmation-btn" onclick="closeConfirmationPopup()">
+                        Parfait !
+                    </button>
+                </div>
+            `;
+            
+            document.body.appendChild(overlay);
+            
+            // Auto-fermeture après 4 secondes
+            setTimeout(() => {
+                if (document.body.contains(overlay)) {
+                    closeConfirmationPopup();
+                }
+            }, 4000);
+        }
+
+        function closeConfirmationPopup() {
+            const overlay = document.querySelector('.confirmation-overlay');
+            if (overlay) {
+                document.body.removeChild(overlay);
+                // Retourner aux cahiers après fermeture du popup
+                showPage('mes-cahiers');
+            }
+        }
+
+        // Swipe functions
+        function flipSwipeCard(cardNumber) {
+            const card = document.getElementById(`swipe-card-${cardNumber}`);
+            const flipElement = card.querySelector('.recipe-flip');
+            if (flipElement) {
+                flipElement.classList.toggle('flipped');
+            }
+        }
+
+        function updateSwipeCard() {
+            const card = document.getElementById('swipe-card-1');
+            const recipeName = swipeCards[swipeIndex];
+            const recipe = cocktailData[recipeName];
+            
+            if (recipe) {
+                const descriptions = {
+                    "Cosmopolitan": "Un cocktail emblématique de New York, parfait pour les soirées sophistiquées. Cliquez pour voir la recette →",
+                    "Old Fashioned": "Le cocktail préféré de Don Draper dans Mad Men. Un grand classique du whiskey américain.",
+                    "Piña Colada": "L'évasion tropicale dans un verre ! Parfait pour rêver de plages de sable blanc.",
+                    "Moscow Mule": "Le cocktail qui a rendu les mugs en cuivre populaires. Frais et épicé à souhait."
+                };
+                
+                card.innerHTML = `
+                    <div class="recipe-flip" onclick="flipSwipeCard(1)">
+                        <!-- Verso (face photo) -->
+                        <div class="recipe-face recipe-verso">
+                            <div class="recipe-image">${recipe.image}</div>
+                            <h2>${recipeName}</h2>
+                            <p>${recipe.creator}</p>
+                            <div class="tags">
+                                ${recipe.tags.map(tag => `<span class="tag">${tag}</span>`).join('')}
+                            </div>
+                            <p style="text-align: center; margin-top: 15px; color: #666; font-style: italic; font-size: 0.9rem;">
+                                ${descriptions[recipeName] || "Un délicieux cocktail à découvrir. Cliquez pour voir la recette →"}
+                            </p>
+                        </div>
+                        <!-- Recto (face recette) -->
+                        <div class="recipe-face recipe-recto">
+                            <h3>Ingrédients</h3>
+                            <div style="font-size: 0.9rem; margin-bottom: 15px;">
+                                ${recipe.ingredients.slice(0, 3).map(([name, qty]) => 
+                                    `<div style="display: flex; justify-content: space-between; margin-bottom: 5px;">
+                                        <span>${name}</span><span>${qty}</span>
+                                    </div>`
+                                ).join('')}
+                            </div>
+                            <h3>Préparation</h3>
+                            <div style="font-size: 0.9rem;">
+                                ${recipe.steps.slice(0, 3).map((step, index) => 
+                                    `<p>${index + 1}. ${step}</p>`
+                                ).join('')}
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }
+        }
+
+        function swipeLike() {
+            const recipeName = swipeCards[swipeIndex];
+            if (!cahiers["Pages likées"].includes(recipeName)) {
+                cahiers["Pages likées"].push(recipeName);
+            }
+            
+            swipeIndex = (swipeIndex + 1) % swipeCards.length;
+            updateSwipeCard();
+            
+            // Animation
+            const card = document.getElementById('swipe-card-1');
+            card.style.transform = 'translateX(100%) rotate(30deg)';
+            setTimeout(() => {
+                card.style.transform = '';
+            }, 300);
+        }
+
+        function swipeReject() {
+            swipeIndex = (swipeIndex + 1) % swipeCards.length;
+            updateSwipeCard();
+            
+            // Animation
+            const card = document.getElementById('swipe-card-1');
+            card.style.transform = 'translateX(-100%) rotate(-30deg)';
+            setTimeout(() => {
+                card.style.transform = '';
+            }, 300);
+        }
+
+        // Modal functions
+        function showModal(modalId) {
+            document.getElementById(modalId).classList.add('show');
+        }
+
+        function hideModal(modalId) {
+            document.getElementById(modalId).classList.remove('show');
+        }
+
+        function showNewCahierModal() {
+            showModal('modal-new-cahier');
+        }
+
+        function createNewCahier() {
+            const name = document.getElementById('cahier-name').value.trim();
+            const description = document.getElementById('cahier-description').value.trim();
+            const selectedIcon = document.querySelector('.icon-option.selected');
+            
+            if (!name) {
+                alert('Le nom du cahier est obligatoire !');
+                return;
+            }
+            
+            const icon = selectedIcon ? selectedIcon.dataset.icon : '📔';
+            const fullName = `${icon} ${name}`;
+            
+            // Créer le nouveau cahier
+            cahiers[fullName] = [];
+            
+            // Ajouter la carte dans la grille
+            const cahierGrid = document.getElementById('cahier-grid');
+            const newCard = document.createElement('div');
+            newCard.className = 'cahier-card';
+            newCard.onclick = () => openCahier(fullName);
+            
+            const today = new Date();
+            const dateStr = `${today.getDate().toString().padStart(2, '0')}/${(today.getMonth() + 1).toString().padStart(2, '0')}`;
+            
+            newCard.innerHTML = `
+                <h3>${fullName}</h3>
+                <p>0 recettes • Créé le ${dateStr}${description ? '<br>' + description : ''}</p>
+            `;
+            
+            cahierGrid.appendChild(newCard);
+            
+            // Ajouter le nouveau cahier au select de création de recette
+            updateRecipeSelect();
+            
+            // Reset du formulaire
+            document.getElementById('cahier-name').value = '';
+            document.getElementById('cahier-description').value = '';
+            document.querySelectorAll('.icon-option').forEach(option => {
+                option.classList.remove('selected');
+            });
+            document.querySelector('.icon-option[data-icon="🍹"]').classList.add('selected');
+            
+            hideModal('modal-new-cahier');
+            alert(`Cahier "${fullName}" créé avec succès !`);
+        }
+
+        function updateRecipeSelect() {
+            const select = document.getElementById('new-recipe-cahier');
+            select.innerHTML = '';
+            
+            // Ajouter les cahiers personnels
+            Object.keys(cahiers).forEach(cahierName => {
+                if (!cahierName.includes('(Pro)') && cahierName !== 'Pages likées') {
+                    const option = document.createElement('option');
+                    option.value = cahierName;
+                    option.textContent = cahierName;
+                    select.appendChild(option);
+                }
+            });
+            
+            // Ajouter l'option brouillon
+            const brouillonOption = document.createElement('option');
+            brouillonOption.value = 'brouillon';
+            brouillonOption.textContent = '📝 Brouillon';
+            select.appendChild(brouillonOption);
+        }
+
+        function updateCahierCardCount(cahierName) {
+            // Trouver la carte correspondante et mettre à jour le nombre de recettes
+            const cahierCards = document.querySelectorAll('.cahier-card');
+            cahierCards.forEach(card => {
+                const cardTitle = card.querySelector('h3').textContent;
+                if (cardTitle === cahierName) {
+                    const recipeCount = cahiers[cahierName] ? cahiers[cahierName].length : 0;
+                    const pElement = card.querySelector('p');
+                    const currentText = pElement.innerHTML;
+                    const updatedText = currentText.replace(/\d+ recettes/, `${recipeCount} recettes`);
+                    pElement.innerHTML = updatedText;
+                }
+            });
+        }
+
+        function confirmAddToCahier() {
+            const selectedCahier = document.getElementById('select-cahier').value;
+            if (!cahiers[selectedCahier].includes(currentRecipe)) {
+                cahiers[selectedCahier].push(currentRecipe);
+                alert(`${currentRecipe} ajouté au cahier ${selectedCahier} !`);
+            } else {
+                alert(`${currentRecipe} est déjà dans ce cahier !`);
+            }
+            hideModal('modal-add-to-cahier');
+        }
+
+        // Pro space functions
+        function showProSpace() {
+            document.getElementById('page-title').textContent = 'Espace Pro';
+            document.querySelector('.back-btn').classList.remove('hidden');
+            
+            document.querySelector('.content:not(.hidden)').classList.add('hidden');
+            document.getElementById('pro-space').classList.remove('hidden');
+        }
+
+        function validateProCode() {
+            const code = document.getElementById('pro-code').value;
+            if (code === '1234') {
+                document.querySelector('.pro-code-input').classList.add('hidden');
+                document.getElementById('pro-content').classList.remove('hidden');
+                
+                // Ajouter le cahier pro aux cahiers disponibles
+                cahiers["📚 Café Central (Pro)"] = ["Signature Martini", "Café Cocktail", "Cocktail Maison"];
+                
+                // Afficher la section pro dans "Mes cahiers"
+                document.getElementById('pro-section').classList.remove('hidden');
+                
+                alert('Code validé ! Le cahier professionnel est maintenant disponible dans "Mes cahiers".');
+            } else {
+                alert('Code incorrect. Essayez "1234" pour la démo.');
+            }
+        }
+
+        function updateCahiersGrid() {
+            // Cette fonction n'est plus nécessaire puisque nous gardons le HTML statique
+            // et nous montrons/cachons simplement la section pro
+        }
+
+        function addProSpace() {
+            alert('Fonctionnalité "Ajouter un espace pro" - Permettrait de scanner un QR code ou entrer un code d\'invitation pour rejoindre un nouvel espace professionnel.');
+        }
+
+        function getRandomDate() {
+            const dates = ['15/05', '02/04', '20/03', '10/06', '25/04'];
+            return dates[Math.floor(Math.random() * dates.length)];
+        }
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', function() {
+            updateSwipeCard();
+            updateRecipeSelect();
+            
+            // Icon selector functionality
+            document.querySelectorAll('.icon-option').forEach(option => {
+                option.addEventListener('click', function() {
+                    document.querySelectorAll('.icon-option').forEach(opt => opt.classList.remove('selected'));
+                    this.classList.add('selected');
+                });
+            });
+            
+            // Close modals when clicking outside
+            document.querySelectorAll('.modal').forEach(modal => {
+                modal.addEventListener('click', function(e) {
+                    if (e.target === modal) {
+                        modal.classList.remove('show');
+                    }
+                });
+            });
+            
+            // Close recipe menus when clicking outside
+            document.addEventListener('click', function(e) {
+                if (!e.target.closest('.recipe-menu')) {
+                    document.querySelectorAll('.menu-dropdown').forEach(menu => {
+                        menu.classList.remove('show');
+                    });
+                }
+            });
+        });
+    </script>
